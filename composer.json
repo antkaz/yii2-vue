@@ -1,0 +1,37 @@
+{
+  "name": "antkaz/yii2-vue",
+  "description": "The Vue.js extension for the Yii framework",
+  "homepage": "https://github.com/antkaz/yii2-vue",
+  "type": "yii2-extension",
+  "license": "MIT",
+  "keywords": [
+    "yii2",
+    "vue",
+    "vue.js"
+  ],
+  "support": {
+    "source": "https://github.com/antkaz/yii2-vue",
+    "issues": "https://github.com/antkaz/yii2-vue/issues"
+  },
+  "authors": [
+    {
+      "name": "Anton Kazarinov",
+      "email": "askazarinov@gmail.com"
+    }
+  ],
+  "require": {
+    "yiisoft/yii2": "~2.0.14",
+    "npm-asset/vue": "~2.5.13"
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "antkaz\\vue\\": "src"
+    }
+  }
+}
