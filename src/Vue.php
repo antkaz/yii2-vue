@@ -7,9 +7,11 @@
 
 namespace antkaz\vue;
 
+use yii\base\InvalidConfigException;
 use yii\base\Widget;
 use yii\helpers\Html;
 use yii\helpers\Json;
+use yii\web\JsExpression;
 use yii\web\View;
 
 /**
@@ -20,6 +22,20 @@ use yii\web\View;
  */
 class Vue extends Widget
 {
+    /**
+     * @var array The data object for the Vue instance.
+     *
+     * @see https://vuejs.org/v2/api/index.html#data
+     */
+    public $data;
+
+    /**
+     * @var array Methods to be mixed into the Vue instance.
+     *
+     * @see https://vuejs.org/v2/api/index.html#methods
+     */
+    public $methods;
+
     /**
      * @var array The HTML tag attributes for the widget container tag.
      *
@@ -40,6 +56,8 @@ class Vue extends Widget
      * This method will initializes the HTML attributes for container.
      * After will be registered the Vue asset bundle.
      * If you override this method, make sure you call the parent implementation first.
+     *
+     * @throws \yii\base\InvalidArgumentException
      */
     public function init()
     {
@@ -67,6 +85,46 @@ class Vue extends Widget
     {
         if (!isset($this->clientOptions['el'])) {
             $this->clientOptions['el'] = "#{$this->getId()}";
+        }
+
+        $this->initData();
+        $this->initMethods();
+    }
+
+    /**
+     * Initializes the data object for the Vue instance
+     */
+    protected function initData()
+    {
+        if (empty($this->data)) {
+            return;
+        }
+
+        if (is_array($this->data) || $this->data instanceof JsExpression) {
+            $this->clientOptions['data'] = $this->data;
+        } elseif (is_string($this->data)) {
+            $this->clientOptions['data'] = new JsExpression($this->data);
+        }
+    }
+
+    /**
+     * Initializes methods to be mixed into the Vue instance.
+     *
+     * @throws InvalidConfigException
+     */
+    protected function initMethods()
+    {
+        if (empty($this->methods)) {
+            return;
+        }
+
+        if (!is_array($this->methods)) {
+            throw new InvalidConfigException("The 'items' option are not an array");
+        }
+
+        foreach ($this->methods as $methodName => $handler) {
+            $function = $handler instanceof JsExpression ? $handler : new JsExpression($handler);
+            $this->clientOptions['methods'][$methodName] = $function;
         }
     }
 
