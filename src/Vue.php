@@ -30,6 +30,14 @@ class Vue extends Widget
     public $data;
 
     /**
+     * @var array Computed properties to be mixed into the Vue instance.
+     * All getters and setters have their `this` context automatically bound to the Vue instance.
+     *
+     * @see https://ru.vuejs.org/v2/api/index.html#computed
+     */
+    public $computed;
+
+    /**
      * @var array Methods to be mixed into the Vue instance.
      *
      * @see https://vuejs.org/v2/api/index.html#methods
@@ -88,11 +96,14 @@ class Vue extends Widget
         }
 
         $this->initData();
+        $this->initComputed();
         $this->initMethods();
     }
 
     /**
      * Initializes the data object for the Vue instance
+     *
+     * @throws InvalidConfigException
      */
     protected function initData()
     {
@@ -104,6 +115,40 @@ class Vue extends Widget
             $this->clientOptions['data'] = $this->data;
         } elseif (is_string($this->data)) {
             $this->clientOptions['data'] = new JsExpression($this->data);
+        } else {
+            throw new InvalidConfigException('The "data" option can only be a string or an array');
+        }
+    }
+
+    /**
+     * Initializes computed to be mixed into the Vue instance.
+     *
+     * @throws InvalidConfigException
+     */
+    protected function initComputed()
+    {
+        if (empty($this->computed)) {
+            return;
+        }
+
+        if (!is_array($this->computed)) {
+            throw new InvalidConfigException('The "computed" option are not an array');
+        }
+
+        foreach ($this->computed as $key => $callback) {
+            if (is_array($callback)) {
+                if (isset($callback['get'])) {
+                    $function = $callback['get'] instanceof JsExpression ? $callback['get'] : new JsExpression($callback['get']);
+                    $this->clientOptions['computed'][$key]['get'] = $function;
+                }
+                if (isset($callback['set'])) {
+                    $function = $callback['set'] instanceof JsExpression ? $callback['set'] : new JsExpression($callback['set']);
+                    $this->clientOptions['computed'][$key]['set'] = $function;
+                }
+            } else {
+                $function = $callback instanceof JsExpression ? $callback : new JsExpression($callback);
+                $this->clientOptions['computed'][$key] = $function;
+            }
         }
     }
 
@@ -119,7 +164,7 @@ class Vue extends Widget
         }
 
         if (!is_array($this->methods)) {
-            throw new InvalidConfigException("The 'items' option are not an array");
+            throw new InvalidConfigException('The "methods" option are not an array');
         }
 
         foreach ($this->methods as $methodName => $handler) {
